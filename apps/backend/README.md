@@ -5,4 +5,3 @@
 - [ ] SignUp using phonenumber
 - [ ] SignIn using phonenumber
 - [ ] Transfer
-- [ ] Swap
