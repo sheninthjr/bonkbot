@@ -2,6 +2,8 @@ import express from 'express';
 import { PORT } from './config';
 import userRouter from './userRouter';
 import userTransfer from './transfer';
+import { config } from 'dotenv';
+config();
 
 const app = express()
 

@@ -2,8 +2,13 @@ import { Request, Response, Router } from "express";
 import prisma from "@repo/db/prisma";
 import { generateWallet } from "../utils";
 import { generateMnemonic } from "bip39";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import axios from "axios";
+import { ethers } from "ethers";
 
 const router: Router = Router();
+
+const connection = new Connection(process.env.SOL_RPC!);
 
 router.post("/signup", async (req: Request, res: Response) => {
   const telegramId = req.body.telegram_id;
@@ -139,6 +144,45 @@ router.get("/privatekey/:type", async (req: Request, res: Response) => {
         ?.privateKey,
     });
   }
+});
+
+router.get("/balance/:type", async (req: Request, res: Response) => {
+  const telegramId = req.params.telegram_id;
+  const type = req.params.type?.toUpperCase();
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { telegramId },
+      include: { secrets: true },
+    });
+    if (user) {
+      const solAddress = user.secrets.find(
+        (x) => x.addressType === "SOL"
+      )?.publicKey;
+      const ethAddress = user.secrets.find(
+        (x) => x.addressType === "ETH"
+      )?.publicKey;
+
+      if (type === "SOL") {
+        const sol = await connection.getBalance(new PublicKey(solAddress!));
+        const solbalance = (sol / LAMPORTS_PER_SOL).toString();
+        res.json({
+          solbalance,
+        });
+      } else if (type === "ETH") {
+        const eth = await axios.post(process.env.ETH_RPC!, {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "eth_getBalance",
+          params: [ethAddress, "latest"],
+        });
+        const ethbalance = ethers.formatEther(eth.data.result);
+        res.json({
+          ethbalance,
+        });
+      }
+    }
+  } catch (error) {}
 });
 
 export default router;

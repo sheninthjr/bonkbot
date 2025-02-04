@@ -96,10 +96,22 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
     
     elif data == 'eth_balance':
-        pass
+        telegram_id = query.from_user.id
+        await query.message.reply_text(f"Fetching...")
+        response = requests.get(f'{BACKEND_URL}/balance/ETH/?telegram_id={telegram_id}')
+        parsed_response = json.loads(response.content)
+        ethbalance = parsed_response['ethbalance']
+        await query.message.reply_text(f'Your Eth balance is: {ethbalance}')
+
     
     elif data == 'sol_balance':
-        pass
+        telegram_id = query.from_user.id
+        await query.message.reply_text(f"Fetching...")
+        response = requests.get(f'{BACKEND_URL}/balance/SOL/?telegram_id={telegram_id}')
+        parsed_response = json.loads(response.content)
+        ethbalance = parsed_response['solbalance']
+        await query.message.reply_text(f'Your Sol balance is: {ethbalance}')
+
 
 
 if __name__ == "__main__":
