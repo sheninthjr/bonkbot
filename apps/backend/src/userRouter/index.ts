@@ -146,7 +146,7 @@ router.get("/privatekey/:type", async (req: Request, res: Response) => {
 });
 
 router.get("/balance/:type", async (req: Request, res: Response) => {
-  const telegramId = req.params.telegram_id;
+  const telegramId = req.query.telegram_id as string;
   const type = req.params.type?.toUpperCase();
 
   try {
@@ -161,7 +161,7 @@ router.get("/balance/:type", async (req: Request, res: Response) => {
       const ethAddress = user.secrets.find(
         (x) => x.addressType === "ETH"
       )?.publicKey;
-
+      
       if (type === "SOL") {
         const sol = await connection.getBalance(new PublicKey(solAddress!));
         const solbalance = (sol / LAMPORTS_PER_SOL).toString();

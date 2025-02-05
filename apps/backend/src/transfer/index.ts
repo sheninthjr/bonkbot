@@ -18,6 +18,7 @@ const connection = new Connection(process.env.SOL_RPC!);
 router.post("/transfer", async (req: Request, res: Response) => {
   const telegramId = req.body.telegram_id;
   const { toAddress, amount, type } = req.body;
+
   if (!isValidSolanaAddress(toAddress)) {
     res.status(401).json({
       message: "Not a Valid Solana Address",
@@ -44,6 +45,7 @@ router.post("/transfer", async (req: Request, res: Response) => {
         
         const sol = await connection.getBalance(new PublicKey(publickey!));
         const solbalance = sol / LAMPORTS_PER_SOL;
+
         if (solbalance < amount) {
           res.status(401).json({
             message: `Your SOL balance is ${solbalance} not sufficient to transfer`,
