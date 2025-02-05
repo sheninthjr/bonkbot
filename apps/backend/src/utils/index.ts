@@ -2,7 +2,7 @@ import { mnemonicToSeedSync } from "bip39";
 import { derivePath } from "ed25519-hd-key";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { ethers } from "ethers";
 import { Wallet } from "../types";
 
@@ -27,5 +27,14 @@ export function generateWallet(coin_type: string, mnemonic: string): Wallet {
       publicKey: wallet.address,
     };
   }
-  throw new Error("Unsupported coin type")
+  throw new Error("Unsupported coin type");
+}
+
+export function isValidSolanaAddress(address: string) {
+  try {
+    const publickey = new PublicKey(address);
+    return PublicKey.isOnCurve(publickey);
+  } catch (error) {
+    return false;
+  }
 }

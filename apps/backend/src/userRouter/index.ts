@@ -2,13 +2,12 @@ import { Request, Response, Router } from "express";
 import prisma from "@repo/db/prisma";
 import { generateWallet } from "../utils";
 import { generateMnemonic } from "bip39";
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import axios from "axios";
 import { ethers } from "ethers";
+import { connection } from "../config";
 
 const router: Router = Router();
-
-const connection = new Connection(process.env.SOL_RPC!);
 
 router.post("/signup", async (req: Request, res: Response) => {
   const telegramId = req.body.telegram_id;
