@@ -2,6 +2,6 @@
 
 ### TODO
 
-- [ ] SignUp using phonenumber
-- [ ] SignIn using phonenumber
-- [ ] Transfer
+- [x] SignUp using phonenumber
+- [x] SignIn using phonenumber
+- [x] Transfer

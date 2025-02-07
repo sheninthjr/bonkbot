@@ -9,21 +9,18 @@ import {
 } from "@solana/web3.js";
 import { Router, Request, Response } from "express";
 import { isValidSolanaAddress } from "../utils";
+import { ethers } from "ethers";
 import bs58 from "bs58";
 
 const router: Router = Router();
 
 const connection = new Connection(process.env.SOL_RPC!);
+const ethProvider = new ethers.JsonRpcProvider(process.env.ETH_RPC);
 
 router.post("/transfer", async (req: Request, res: Response) => {
   const telegramId = req.body.telegram_id;
   const { toAddress, amount, type } = req.body;
 
-  if (!isValidSolanaAddress(toAddress)) {
-    res.status(401).json({
-      message: "Not a Valid Solana Address",
-    });
-  }
   try {
     const user = await prisma.user.findFirst({
       where: { telegramId },
@@ -31,6 +28,11 @@ router.post("/transfer", async (req: Request, res: Response) => {
     });
     if (user) {
       if (type === "SOL") {
+        if (!isValidSolanaAddress(toAddress)) {
+          res.status(401).json({
+            message: "Not a Valid Solana Address",
+          });
+        }
         const privatekey = user.secrets.find(
           (x) => x.addressType === "SOL"
         )?.privateKey;
@@ -42,7 +44,7 @@ router.post("/transfer", async (req: Request, res: Response) => {
             message: "Address invalid",
           });
         }
-        
+
         const sol = await connection.getBalance(new PublicKey(publickey!));
         const solbalance = sol / LAMPORTS_PER_SOL;
 
@@ -87,8 +89,52 @@ router.post("/transfer", async (req: Request, res: Response) => {
         const privatekey = user.secrets.find(
           (x) => x.addressType === "ETH"
         )?.privateKey;
+        if (!privatekey) {
+          res.status(401).json({
+            message: "Private Key not found",
+          });
+        } else {
+          const wallet = new ethers.Wallet(privatekey, ethProvider);
+          const balance = await ethProvider.getBalance(wallet.address);
+          const ethbalance = Number(ethers.formatEther(balance));
+
+          if (ethbalance < amount) {
+            res.status(401).json({
+              message: `Your ETH balance is ${ethbalance} not sufficient to transfer`,
+            });
+          }
+          const tx = {
+            to: toAddress,
+            value: ethers.parseEther(amount.toString()),
+          };
+
+          try {
+            const gasEstimation = await ethProvider.estimateGas(tx);
+
+            const transaction = {
+              ...tx,
+              gasLimit: gasEstimation,
+            };
+
+            const txResponse = await wallet.sendTransaction(transaction);
+
+            const receipt = await txResponse.wait();
+
+            res.status(200).json({
+              message: "Transaction Successful",
+              hash: receipt?.hash,
+              blockNumber: receipt?.blockNumber,
+            });
+          } catch (error) {
+            res.status(401).json({
+              message: "Transaction Failed",
+            });
+          }
+        }
       } else {
-        res.status(401);
+        res.status(401).json({
+          message: "Invalid Transaction type"
+        });
       }
     }
   } catch (error) {
