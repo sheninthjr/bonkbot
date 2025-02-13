@@ -27,6 +27,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.3.0",
+    "shamirs-secret-sharing": "^2.0.0",
     "tweetnacl": "^1.0.3",
     "web3.js": "link:@types/@solana/web3.js"
   }

@@ -29,6 +29,7 @@ router.post("/signup", async (req: Request, res: Response) => {
         message: "User already exists",
       });
     } else {
+      const secret = Buffer.from(mnemonic);
       const user = await prisma.user.create({
         data: {
           telegramId,
